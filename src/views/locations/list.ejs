@@ -1,0 +1,25 @@
+<%- include('../partials/top') %>
+<div class="page-head">
+  <h1>Labs &amp; rooms</h1>
+  <% if (can('locations.manage')) { %><div class="actions"><a class="btn btn-primary" href="/locations/new">Add lab or room</a></div><% } %>
+</div>
+<% if (locations.length) { %>
+<table class="register stack">
+  <thead><tr><th>Code</th><th>Name</th><th>Type</th><th>In-charge</th><th class="num">Items</th><th class="num">Faulty</th></tr></thead>
+  <tbody>
+  <% for (const l of locations) { %>
+    <tr>
+      <td class="lead"><a href="/locations/<%= l.id %>" class="mono nowrap"><%= l.code %></a></td>
+      <td data-label="Name"><%= l.name %><% if (l.building || l.floor) { %><span class="sub"><%= [l.building, l.floor].filter(Boolean).join(', ') %></span><% } %></td>
+      <td data-label="Type"><%= fmt.KIND[l.kind] %></td>
+      <td data-label="In-charge"><%= l.incharge || '—' %></td>
+      <td data-label="Items" class="num"><%= fmt.number(l.total) %></td>
+      <td data-label="Faulty" class="num"><% if (l.faulty) { %><a href="/equipment?location=<%= l.id %>&amp;status=issue_reported"><strong><%= l.faulty %></strong></a><% } else { %><span class="muted">0</span><% } %></td>
+    </tr>
+  <% } %>
+  </tbody>
+</table>
+<% } else { %>
+<p class="empty">No labs or rooms yet. Add the first one, then add equipment to it.</p>
+<% } %>
+<%- include('../partials/bottom') %>

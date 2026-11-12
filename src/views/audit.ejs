@@ -1,0 +1,45 @@
+<%- include('partials/top') %>
+<% const params = { q: filter.q, group: filter.group };
+   const groupNames = { '': 'Everything', login: 'Sign-ins', password: 'Passwords', user: 'People', equipment: 'Equipment', report: 'Reports', location: 'Labs & rooms', category: 'Categories' }; %>
+<div class="page-head">
+  <div>
+    <h1>Activity log</h1>
+    <p class="lede">A permanent record of every sign-in and every change. Entries cannot be edited or removed.</p>
+  </div>
+</div>
+<form method="get" action="/audit" class="filters filters-2" role="search">
+  <div>
+    <label for="q">Search</label>
+    <input id="q" name="q" type="search" value="<%= filter.q %>" maxlength="80" placeholder="College ID, asset tag or words">
+  </div>
+  <div>
+    <label for="group">Kind of activity</label>
+    <select id="group" name="group">
+      <% for (const g of groups) { %><option value="<%= g %>"<%= g === filter.group ? ' selected' : '' %>><%= groupNames[g] %></option><% } %>
+    </select>
+  </div>
+  <div class="filter-actions">
+    <button type="submit" class="btn btn-primary">Apply</button>
+    <a href="/audit" class="small">Clear</a>
+  </div>
+</form>
+<% if (entries.length) { %>
+<table class="register stack">
+  <thead><tr><th>When</th><th>Who</th><th>What happened</th><th>Action</th><th>From address</th></tr></thead>
+  <tbody>
+  <% for (const a of entries) { %>
+    <tr>
+      <td class="lead nowrap"><%= fmt.dateTime(a.created_at) %></td>
+      <td data-label="Who" class="mono"><%= a.actor || '—' %></td>
+      <td data-label="What"><% if (a.entity_type === 'equipment' && a.entity_id) { %><a href="/equipment/<%= a.entity_id %>"><%= a.summary %></a><% } else { %><%= a.summary %><% } %></td>
+      <td data-label="Action" class="mono small"><%= a.action %></td>
+      <td data-label="From" class="mono small"><%= a.ip || '—' %></td>
+    </tr>
+  <% } %>
+  </tbody>
+</table>
+<%- include('partials/pager', { pg, base: '/audit', params }) %>
+<% } else { %>
+<p class="empty">No activity matches.</p>
+<% } %>
+<%- include('partials/bottom') %>

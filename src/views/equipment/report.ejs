@@ -1,0 +1,46 @@
+<%- include('../partials/top') %>
+<div class="page-head">
+  <div>
+    <p class="crumb"><a href="/equipment/<%= item.id %>"><%= item.asset_tag %></a> · <%= item.location_code %> <%= item.location_name %></p>
+    <h1>Report a problem</h1>
+    <p class="lede"><%= item.name %><% if (item.brand || item.model) { %> (<%= [item.brand, item.model].filter(Boolean).join(' ') %>)<% } %></p>
+  </div>
+</div>
+
+<% if (typeof block === 'string') { %>
+<div class="notice notice-error" role="alert"><%= block %></div>
+<div class="actions"><a class="btn" href="/equipment/<%= item.id %>">Back</a></div>
+<% } else { %>
+<% if (activeReports.length) { %>
+<div class="notice notice-warn">
+  <h2>Already reported</h2>
+  <ul>
+    <% for (const r of activeReports) { %>
+    <li><%= fmt.ISSUE[r.issue_type] %>, reported <%= fmt.date(r.created_at) %> (<%= fmt.REPORT_STATUS[r.status].toLowerCase() %>)</li>
+    <% } %>
+  </ul>
+  <p class="small">The lab staff already know about this. Report again only if you have found a different problem.</p>
+</div>
+<% } %>
+<form method="post" action="/equipment/<%= item.id %>/report" class="form" novalidate>
+  <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
+  <fieldset<% if (errors.issue_type) { %> aria-describedby="e-issue_type"<% } %>>
+    <legend class="legend">What is wrong?</legend>
+    <div class="choices">
+      <% for (const key of Object.keys(fmt.ISSUE)) { %>
+      <label class="choice"><input type="radio" name="issue_type" value="<%= key %>"<%= values.issue_type === key ? ' checked' : '' %> required><span><%= fmt.ISSUE[key] %></span></label>
+      <% } %>
+    </div>
+    <% if (errors.issue_type) { %><p class="field-error" id="e-issue_type"><%= errors.issue_type %></p><% } %>
+  </fieldset>
+  <div class="form-part">
+    <%- include('../partials/input', { name: 'description', label: 'Describe the problem', type: 'textarea', rows: 5, values, errors, maxlength: 1000, hint: 'A sentence or two is enough. For example: “Does not power on, no light on the front panel.”' }) %>
+  </div>
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary">Send report</button>
+    <a class="btn" href="/equipment/<%= item.id %>">Cancel</a>
+  </div>
+  <p class="hint">Your name and college ID are recorded with the report.</p>
+</form>
+<% } %>
+<%- include('../partials/bottom') %>

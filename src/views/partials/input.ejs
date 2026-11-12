@@ -1,0 +1,17 @@
+<%
+  const _type = locals.type || 'text';
+  const _raw = values ? values[name] : '';
+  const _val = _raw === undefined || _raw === null ? '' : _raw;
+  const _err = errors ? errors[name] : null;
+  const _describe = [_err ? `e-${name}` : '', locals.hint ? `h-${name}` : ''].filter(Boolean).join(' ');
+-%>
+<div class="field<%= locals.wide ? ' span-2' : '' %>">
+  <label for="f-<%= name %>"><%= label %><% if (locals.optional) { %> <span class="optional">(optional)</span><% } %></label>
+  <% if (_type === 'textarea') { %>
+  <textarea id="f-<%= name %>" name="<%= name %>" rows="<%= locals.rows || 4 %>" maxlength="<%= locals.maxlength || 1000 %>"<% if (_err) { %> aria-invalid="true"<% } %><% if (_describe) { %> aria-describedby="<%= _describe %>"<% } %><% if (!locals.optional) { %> required<% } %>><%= _val %></textarea>
+  <% } else { %>
+  <input id="f-<%= name %>" name="<%= name %>" type="<%= _type %>" value="<%= _val %>"<% if (locals.maxlength) { %> maxlength="<%= maxlength %>"<% } %><% if (locals.inputmode) { %> inputmode="<%= inputmode %>"<% } %><% if (locals.placeholder) { %> placeholder="<%= placeholder %>"<% } %> autocomplete="<%= locals.autocomplete || 'off' %>"<% if (_err) { %> aria-invalid="true"<% } %><% if (_describe) { %> aria-describedby="<%= _describe %>"<% } %><% if (!locals.optional) { %> required<% } %><% if (locals.readonly) { %> readonly<% } %>>
+  <% } %>
+  <% if (locals.hint) { %><p class="hint" id="h-<%= name %>"><%= hint %></p><% } %>
+  <% if (_err) { %><p class="field-error" id="e-<%= name %>"><%= _err %></p><% } %>
+</div>

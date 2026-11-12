@@ -1,0 +1,16 @@
+<%
+  const _raw = values ? values[name] : '';
+  const _val = _raw === undefined || _raw === null ? '' : String(_raw);
+  const _err = errors ? errors[name] : null;
+-%>
+<div class="field<%= locals.wide ? ' span-2' : '' %>">
+  <label for="f-<%= name %>"><%= label %><% if (locals.optional) { %> <span class="optional">(optional)</span><% } %></label>
+  <select id="f-<%= name %>" name="<%= name %>"<% if (_err) { %> aria-invalid="true" aria-describedby="e-<%= name %>"<% } %><% if (!locals.optional) { %> required<% } %>>
+    <option value=""><%= locals.placeholder || 'Choose…' %></option>
+    <% for (const o of options) { %>
+    <option value="<%= o.value %>"<%= String(o.value) === _val ? ' selected' : '' %>><%= o.label %></option>
+    <% } %>
+  </select>
+  <% if (locals.hint) { %><p class="hint"><%= hint %></p><% } %>
+  <% if (_err) { %><p class="field-error" id="e-<%= name %>"><%= _err %></p><% } %>
+</div>

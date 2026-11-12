@@ -1,0 +1,38 @@
+{
+  "name": "college-inventory-register",
+  "version": "1.0.0",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "laptop": "node scripts/laptop.js",
+    "dev": "node --watch src/server.js",
+    "setup": "node scripts/setup.js",
+    "seed:demo": "node scripts/seed-demo.js",
+    "alerts": "node scripts/alerts.js",
+    "test": "node scripts/run-tests.js"
+  },
+  "license": "UNLICENSED",
+  "description": "Inventory register for a college: equipment, labs, QR labels and problem reports.",
+  "dependencies": {
+    "better-sqlite3": "^12.11.1",
+    "ejs": "^7.0.2",
+    "express": "^4.22.3",
+    "express-rate-limit": "^8.7.4",
+    "express-session": "^1.19.0",
+    "helmet": "^8.3.0",
+    "nodemailer": "^10.5.0",
+    "qrcode": "^1.5.4",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "smtp-server": "^3.21.4",
+    "supertest": "^7.3.2"
+  },
+  "private": true,
+  "engines": {
+    "node": ">=22"
+  },
+  "allowScripts": {
+    "better-sqlite3@12.11.1": true
+  }
+}

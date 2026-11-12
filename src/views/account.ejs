@@ -1,0 +1,15 @@
+<%- include('partials/top') %>
+<div class="page-head">
+  <h1>My account</h1>
+  <div class="actions"><a class="btn" href="/account/password">Change password</a></div>
+</div>
+<dl class="sheet form">
+  <div><dt>Name</dt><dd><%= me.name %></dd></div>
+  <div><dt>College ID</dt><dd class="mono"><%= me.college_id %></dd></div>
+  <div><dt>Role</dt><dd><%= fmt.ROLE[me.role] %></dd></div>
+  <div><dt>Department</dt><dd><%= me.department || '—' %></dd></div>
+  <div><dt>Email</dt><dd><%= me.email || '—' %></dd></div>
+  <div><dt>Last sign-in</dt><dd><%= fmt.dateTime(me.last_login_at) %></dd></div>
+</dl>
+<p class="section-note small">If any of these details are wrong, ask the lab office to correct them.</p>
+<%- include('partials/bottom') %>

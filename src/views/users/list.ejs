@@ -1,0 +1,48 @@
+<%- include('../partials/top') %>
+<% const params = { q: filter.q, role: filter.role }; %>
+<div class="page-head">
+  <h1>People</h1>
+  <div class="actions">
+    <a class="btn" href="/users/import">Import roster</a>
+    <a class="btn btn-primary" href="/users/new">Add person</a>
+  </div>
+</div>
+<form method="get" action="/users" class="filters filters-2" role="search">
+  <div>
+    <label for="q">Search</label>
+    <input id="q" name="q" type="search" value="<%= filter.q %>" maxlength="80" placeholder="College ID, name or department">
+  </div>
+  <div>
+    <label for="role">Role</label>
+    <select id="role" name="role">
+      <option value="">All</option>
+      <% for (const k of Object.keys(fmt.ROLE)) { %><option value="<%= k %>"<%= k === filter.role ? ' selected' : '' %>><%= fmt.ROLE[k] %></option><% } %>
+    </select>
+  </div>
+  <div class="filter-actions">
+    <button type="submit" class="btn btn-primary">Apply</button>
+    <a href="/users" class="small">Clear</a>
+  </div>
+</form>
+<% if (people.length) { %>
+<p class="result-count"><%= fmt.number(pg.total) %> <%= pg.total === 1 ? 'person' : 'people' %></p>
+<table class="register stack">
+  <thead><tr><th>College ID</th><th>Name</th><th>Role</th><th>Department</th><th>Last sign-in</th><th></th></tr></thead>
+  <tbody>
+  <% for (const p of people) { %>
+    <tr>
+      <td class="lead"><a href="/users/<%= p.id %>/edit" class="mono nowrap"><%= p.college_id %></a></td>
+      <td data-label="Name"><%= p.name %></td>
+      <td data-label="Role"><%= fmt.ROLE[p.role] %></td>
+      <td data-label="Department"><%= p.department || '—' %></td>
+      <td data-label="Last sign-in" class="nowrap"><%= p.last_login_at ? fmt.dateTime(p.last_login_at) : 'Never' %></td>
+      <td><% if (!p.is_active) { %><span class="stamp stamp-inactive">Deactivated</span><% } %></td>
+    </tr>
+  <% } %>
+  </tbody>
+</table>
+<%- include('../partials/pager', { pg, base: '/users', params }) %>
+<% } else { %>
+<p class="empty">Nobody matches. <a href="/users">Show everyone</a>.</p>
+<% } %>
+<%- include('../partials/bottom') %>

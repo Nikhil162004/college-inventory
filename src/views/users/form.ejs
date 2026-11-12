@@ -1,0 +1,44 @@
+<%- include('../partials/top') %>
+<div class="page-head">
+  <div>
+    <p class="crumb"><a href="/users">People</a></p>
+    <h1><%= person ? person.name : 'Add person' %></h1>
+    <% if (person) { %><p class="record-top lede"><span class="asset-tag"><%= person.college_id %></span><% if (!person.is_active) { %> <span class="stamp stamp-inactive">Deactivated</span><% } %><% if (person.locked_until && person.locked_until > Date.now()) { %> <span class="stamp stamp-open">Locked</span><% } %></p><% } %>
+  </div>
+</div>
+<% if (Object.keys(errors).length) { %><div class="notice notice-error" role="alert">Some details need correcting. They are marked below.</div><% } %>
+<form method="post" action="<%= person ? '/users/' + person.id : '/users' %>" class="form" novalidate>
+  <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
+  <div class="form-grid">
+    <% if (!person) { %>
+    <%- include('../partials/input', { name: 'college_id', label: 'College ID', values, errors, maxlength: 20, hint: 'Enrolment number or employee number. Used to sign in; cannot be changed later.' }) %>
+    <% } %>
+    <%- include('../partials/input', { name: 'name', label: 'Full name', values, errors, maxlength: 100 }) %>
+    <%- include('../partials/select', { name: 'role', label: 'Role', values, errors, options: Object.keys(fmt.ROLE).map((k) => ({ value: k, label: fmt.ROLE[k] })), hint: 'Students and faculty report problems. Lab staff manage equipment and reports. Administrators also manage people.' }) %>
+    <%- include('../partials/input', { name: 'department', label: 'Department', values, errors, maxlength: 60, optional: true }) %>
+    <%- include('../partials/input', { name: 'email', label: 'Email', type: 'email', values, errors, maxlength: 120, optional: true }) %>
+    <% if (person) { %>
+    <%- include('../partials/select', { name: 'is_active', label: 'Account', values, errors, options: [{ value: 1, label: 'Active' }, { value: 0, label: 'Deactivated (cannot sign in)' }] }) %>
+    <% } %>
+  </div>
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary"><%= person ? 'Save changes' : 'Create account' %></button>
+    <a class="btn" href="/users">Cancel</a>
+  </div>
+  <% if (!person) { %><p class="hint">A temporary password is shown once after the account is created. The person must replace it at first sign-in.</p><% } %>
+</form>
+
+<% if (person && person.id !== user.id) { %>
+<section class="section form">
+  <div class="section-head"><h2>Reset password</h2></div>
+  <p class="section-note small">Creates a new temporary password, signs this person out everywhere and unlocks the account if it is locked. Check the person’s identity card first.</p>
+  <form method="post" action="/users/<%= person.id %>/reset-password" data-confirm="Reset the password of <%= person.college_id %>?">
+    <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
+    <button type="submit" class="btn btn-danger">Reset password</button>
+  </form>
+</section>
+<% } %>
+<% if (person) { %>
+<p class="section-note small">Account created <%= fmt.date(person.created_at) %>. Last sign-in: <%= person.last_login_at ? fmt.dateTime(person.last_login_at) : 'never' %>.</p>
+<% } %>
+<%- include('../partials/bottom') %>

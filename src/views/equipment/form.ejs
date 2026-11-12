@@ -1,0 +1,56 @@
+<%- include('../partials/top') %>
+<div class="page-head">
+  <div>
+    <p class="crumb"><a href="/equipment">Equipment</a><% if (item) { %> / <a href="/equipment/<%= item.id %>"><%= item.asset_tag %></a><% } %></p>
+    <h1><%= item ? 'Edit ' + item.asset_tag : 'Add equipment' %></h1>
+    <% if (!item) { %><p class="lede">Each item gets its own asset tag and QR label automatically. To register a batch of identical items, such as 30 computers for one lab, enter the quantity.</p><% } %>
+  </div>
+</div>
+<% if (Object.keys(errors).length) { %><div class="notice notice-error" role="alert">Some details need correcting. They are marked below.</div><% } %>
+
+<form method="post" action="<%= item ? '/equipment/' + item.id : '/equipment' %>" class="form" novalidate>
+  <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
+  <div class="form-grid">
+    <%- include('../partials/input', { name: 'name', label: 'Item name', values, errors, maxlength: 120, wide: true, hint: 'What people call it, e.g. “Desktop computer” or “Ceiling projector”.' }) %>
+    <% if (item) { %>
+    <div class="field">
+      <span class="legend">Category</span>
+      <p><%= item.category %></p>
+      <p class="hint">Fixed, because the asset tag <span class="mono"><%= item.asset_tag %></span> is based on it.</p>
+    </div>
+    <% } else { %>
+    <%- include('../partials/select', { name: 'category_id', label: 'Category', values, errors, options: categories.map((c) => ({ value: c.id, label: `${c.name} (${c.prefix}-…)` })), hint: 'Decides the asset tag prefix.' }) %>
+    <% } %>
+    <%- include('../partials/select', { name: 'location_id', label: 'Lab or room', values, errors, options: locations.map((l) => ({ value: l.id, label: `${l.code} · ${l.name}` })) }) %>
+    <% if (!item) { %>
+    <%- include('../partials/input', { name: 'quantity', label: 'Quantity', values, errors, inputmode: 'numeric', maxlength: 3, hint: `1 to ${maxQuantity} identical items.` }) %>
+    <% } %>
+  </div>
+
+  <div class="form-part">
+    <h2>Make and model</h2>
+    <div class="form-grid">
+      <%- include('../partials/input', { name: 'brand', label: 'Brand', values, errors, maxlength: 80, optional: true }) %>
+      <%- include('../partials/input', { name: 'model', label: 'Model', values, errors, maxlength: 80, optional: true }) %>
+      <%- include('../partials/input', { name: 'serial_no', label: 'Serial number', values, errors, maxlength: 80, optional: true, hint: item ? '' : 'Only when adding a single item.' }) %>
+      <%- include('../partials/input', { name: 'specs', label: 'Specifications', values, errors, maxlength: 500, optional: true, hint: 'e.g. Core i5, 16 GB RAM, 512 GB SSD' }) %>
+    </div>
+  </div>
+
+  <div class="form-part">
+    <h2>Purchase</h2>
+    <div class="form-grid">
+      <%- include('../partials/input', { name: 'purchase_date', label: 'Purchase date', type: 'date', values, errors, optional: true }) %>
+      <%- include('../partials/input', { name: 'purchase_cost', label: 'Cost per item (₹)', values, errors, inputmode: 'numeric', maxlength: 9, optional: true }) %>
+      <%- include('../partials/input', { name: 'vendor', label: 'Vendor', values, errors, maxlength: 120, optional: true }) %>
+      <%- include('../partials/input', { name: 'warranty_until', label: 'Warranty until', type: 'date', values, errors, optional: true }) %>
+      <%- include('../partials/input', { name: 'notes', label: 'Notes', type: 'textarea', rows: 3, values, errors, maxlength: 1000, optional: true, wide: true }) %>
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary"><%= item ? 'Save changes' : 'Add to register' %></button>
+    <a class="btn" href="<%= item ? '/equipment/' + item.id : '/equipment' %>">Cancel</a>
+  </div>
+</form>
+<%- include('../partials/bottom') %>

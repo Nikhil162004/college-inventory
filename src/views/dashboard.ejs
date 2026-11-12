@@ -1,0 +1,126 @@
+<%- include('partials/top') %>
+<div class="page-head">
+  <div>
+    <h1>Overview</h1>
+    <p class="lede"><%= overview ? 'The state of the college inventory right now.' : 'Report equipment that is broken or missing so the lab staff can fix it.' %></p>
+  </div>
+  <% if (can('equipment.manage')) { %>
+  <div class="actions"><a class="btn btn-primary" href="/equipment/new">Add equipment</a></div>
+  <% } %>
+</div>
+
+<% if (overview) { const o = overview; %>
+<section class="section">
+  <div class="figures">
+    <div class="figure"><a href="/equipment"><span class="figure-value"><%= fmt.number(o.inUse) %></span><span class="figure-label">Items on the register</span></a></div>
+    <div class="figure"><a href="/equipment?status=working"><span class="figure-value"><%= fmt.number(o.status.working) %></span><span class="figure-label">Working</span></a></div>
+    <div class="figure"><a href="/locations"><span class="figure-value"><%= fmt.number(o.locations) %></span><span class="figure-label">Labs and rooms (<%= o.labs %> labs)</span></a></div>
+    <div class="figure<%= o.status.issue_reported ? ' figure-bad' : '' %>"><a href="/equipment?status=issue_reported"><span class="figure-value"><%= fmt.number(o.status.issue_reported) %></span><span class="figure-label">Issue reported, not yet attended</span></a></div>
+    <div class="figure<%= o.status.under_repair ? ' figure-warn' : '' %>"><a href="/equipment?status=under_repair"><span class="figure-value"><%= fmt.number(o.status.under_repair) %></span><span class="figure-label">Under repair</span></a></div>
+    <div class="figure"><a href="/reports"><span class="figure-value"><%= fmt.number(o.reports.open + o.reports.in_progress) %></span><span class="figure-label">Reports awaiting action</span></a></div>
+  </div>
+</section>
+<% if (can('audit.view')) { %>
+<p class="quiet-line"><% if (alertsOn) { %>Email alerts for new reports: on. Each new report is also emailed to the address set on the server.<% } else { %>Email alerts for new reports: off. New reports appear here only. To switch them on, see “Email alerts” in the README.<% } %></p>
+<% } %>
+
+<section class="section">
+  <div class="section-head"><h2>Reports awaiting action</h2><a href="/reports">All reports</a></div>
+  <% if (o.recentReports.length) { %>
+  <table class="register stack">
+    <thead><tr><th>Equipment</th><th>Problem</th><th>Where</th><th>Reported</th><th>Status</th></tr></thead>
+    <tbody>
+    <% for (const r of o.recentReports) { %>
+      <tr>
+        <td class="lead"><a href="/reports/<%= r.id %>" class="mono"><%= r.asset_tag %></a><span class="sub"><%= r.equipment_name %></span></td>
+        <td data-label="Problem"><%= fmt.ISSUE[r.issue_type] %></td>
+        <td data-label="Where" class="mono"><%= r.location_code %></td>
+        <td data-label="Reported" class="nowrap"><%= fmt.dateTime(r.created_at) %></td>
+        <td data-label="Status"><span class="stamp stamp-<%= r.status %>"><%= fmt.REPORT_STATUS[r.status] %></span></td>
+      </tr>
+    <% } %>
+    </tbody>
+  </table>
+  <% } else { %><p class="empty">No reports are waiting. Everything reported has been dealt with.</p><% } %>
+</section>
+
+<div class="split section">
+  <section>
+    <div class="section-head"><h2>Rooms needing attention</h2></div>
+    <% if (o.attention.length) { %>
+    <table class="register">
+      <thead><tr><th>Lab or room</th><th class="num">Faulty</th><th class="num">Of</th></tr></thead>
+      <tbody>
+      <% for (const l of o.attention) { %>
+        <tr>
+          <td class="lead"><a href="/locations/<%= l.id %>" class="mono"><%= l.code %></a><span class="sub"><%= l.name %></span></td>
+          <td class="num"><%= l.faulty %></td>
+          <td class="num muted"><%= l.total %></td>
+        </tr>
+      <% } %>
+      </tbody>
+    </table>
+    <% } else { %><p class="empty">No room has faulty equipment.</p><% } %>
+  </section>
+  <section>
+    <div class="section-head"><h2>Largest categories</h2></div>
+    <% const top = o.byCategory.length ? o.byCategory[0].n : 1; %>
+    <table class="register">
+      <thead><tr><th>Category</th><th class="num">Items</th></tr></thead>
+      <tbody>
+      <% for (const c of o.byCategory) { %>
+        <tr>
+          <td><a href="/equipment?category=<%= c.id %>"><%= c.name %></a>
+            <svg class="bar" viewBox="0 0 100 4" preserveAspectRatio="none" aria-hidden="true"><rect width="<%= Math.max(1, Math.round((c.n / top) * 100)) %>" height="4"/></svg>
+          </td>
+          <td class="num"><%= fmt.number(c.n) %></td>
+        </tr>
+      <% } %>
+      </tbody>
+    </table>
+  </section>
+</div>
+<% } %>
+
+<section class="section">
+  <div class="find">
+    <h2>Report a problem with equipment</h2>
+    <p>Scan the QR label on the item with your phone camera, or type the asset tag printed on the label.</p>
+    <form method="get" action="/find" class="find-row">
+      <label class="sr-only" for="tag">Asset tag</label>
+      <input id="tag" name="tag" type="text" placeholder="Asset tag, e.g. PC-00042" maxlength="20" autocomplete="off" autocapitalize="characters" spellcheck="false" required>
+      <button type="submit" class="btn btn-primary">Find</button>
+    </form>
+  </div>
+</section>
+
+<% if (!overview) { %>
+<section class="section">
+  <div class="section-head"><h2>How reporting works</h2></div>
+  <ol class="steps">
+    <li><span>Find the label on the equipment. Every item in the college has one, with a QR code and a tag such as <span class="mono">PC-00042</span>.</span></li>
+    <li><span>Scan the code with your phone camera, or type the tag above. Say what is wrong in a sentence or two.</span></li>
+    <li><span>The lab staff are told at once. You can follow the repair under “My reports”.</span></li>
+  </ol>
+</section>
+<% } %>
+
+<section class="section">
+  <div class="section-head"><h2>My recent reports</h2><% if (myReports.length) { %><% if (!overview) { %><a href="/reports">See all</a><% } %><% } %></div>
+  <% if (myReports.length) { %>
+  <table class="register stack">
+    <thead><tr><th>Equipment</th><th>Problem</th><th>Reported</th><th>Status</th></tr></thead>
+    <tbody>
+    <% for (const r of myReports) { %>
+      <tr>
+        <td class="lead"><a href="/reports/<%= r.id %>" class="mono"><%= r.asset_tag %></a><span class="sub"><%= r.equipment_name %> · <%= r.location_code %></span></td>
+        <td data-label="Problem"><%= fmt.ISSUE[r.issue_type] %></td>
+        <td data-label="Reported" class="nowrap"><%= fmt.dateTime(r.created_at) %></td>
+        <td data-label="Status"><span class="stamp stamp-<%= r.status %>"><%= fmt.REPORT_STATUS[r.status] %></span></td>
+      </tr>
+    <% } %>
+    </tbody>
+  </table>
+  <% } else { %><p class="empty">You have not reported anything yet.</p><% } %>
+</section>
+<%- include('partials/bottom') %>

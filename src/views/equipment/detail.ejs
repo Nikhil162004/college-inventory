@@ -1,0 +1,131 @@
+<%- include('../partials/top') %>
+<div class="page-head">
+  <div>
+    <p class="crumb"><% if (full) { %><a href="/equipment">Equipment</a> / <a href="/locations/<%= item.location_id %>"><%= item.location_code %></a><% } else { %><%= item.location_code %> · <%= item.location_name %><% } %></p>
+    <h1><%= item.name %></h1>
+    <p class="record-top lede"><span class="asset-tag"><%= item.asset_tag %></span> <span class="stamp stamp-<%= item.status %>"><%= fmt.STATUS[item.status] %></span></p>
+  </div>
+  <div class="actions">
+    <% if (can('equipment.manage')) { %>
+    <a class="btn" href="/equipment/<%= item.id %>/edit">Edit</a>
+    <a class="btn" href="/equipment/labels?q=<%= item.asset_tag %><%= item.status === 'retired' ? '&status=retired' : '' %>">Print label</a>
+    <% } %>
+    <% if (item.status !== 'retired' && !mine) { %>
+    <a class="btn btn-primary" href="/equipment/<%= item.id %>/report">Report a problem</a>
+    <% } %>
+  </div>
+</div>
+
+<% if (mine) { %>
+<div class="notice notice-info">You have reported this item. <a href="/reports/<%= mine.id %>">Follow your report</a>.</div>
+<% } else if (activeReports.length) { %>
+<div class="notice notice-warn">
+  <h2>Already reported</h2>
+  <ul>
+    <% for (const r of activeReports) { %>
+    <li><%= fmt.ISSUE[r.issue_type] %>, reported <%= fmt.date(r.created_at) %> (<%= fmt.REPORT_STATUS[r.status].toLowerCase() %>)</li>
+    <% } %>
+  </ul>
+  <p class="small">You only need to report again if you have found a different problem.</p>
+</div>
+<% } %>
+<% if (item.status === 'retired') { %>
+<div class="notice">This item has been written off<% if (full && item.retired_reason) { %>: <%= item.retired_reason %><% } %>.</div>
+<% } %>
+
+<div class="split split-wide">
+  <section class="section">
+    <div class="section-head"><h2>Details</h2></div>
+    <dl class="sheet">
+      <div><dt>Category</dt><dd><%= item.category %></dd></div>
+      <div><dt>Location</dt><dd><span class="mono"><%= item.location_code %></span> · <%= item.location_name %></dd></div>
+      <div><dt>Brand and model</dt><dd><%= [item.brand, item.model].filter(Boolean).join(' ') || '—' %></dd></div>
+      <% if (item.specs) { %><div><dt>Specifications</dt><dd><%= item.specs %></dd></div><% } %>
+      <% if (full) { %>
+      <div><dt>Serial number</dt><dd class="mono"><%= item.serial_no || '—' %></dd></div>
+      <div><dt>Purchased</dt><dd><%= fmt.day(item.purchase_date) %></dd></div>
+      <div><dt>Cost</dt><dd><%= fmt.money(item.purchase_cost) %></dd></div>
+      <div><dt>Vendor</dt><dd><%= item.vendor || '—' %></dd></div>
+      <div><dt>Warranty until</dt><dd><%= fmt.day(item.warranty_until) %></dd></div>
+      <% if (item.notes) { %><div><dt>Notes</dt><dd class="pre-line"><%= item.notes %></dd></div><% } %>
+      <div><dt>Added</dt><dd><%= fmt.date(item.created_at) %><% if (item.created_by_name) { %> by <%= item.created_by_name %><% } %></dd></div>
+      <% } %>
+    </dl>
+  </section>
+
+  <% if (qr) { %>
+  <section class="section">
+    <div class="section-head"><h2>QR label</h2></div>
+    <div class="qr-card">
+      <%- qr %>
+      <div>
+        <p class="asset-tag"><%= item.asset_tag %></p>
+        <p class="small muted">Scanning opens</p>
+        <p class="small mono"><%= scanUrl %></p>
+        <% if (guestReports) { %><p class="small muted">Anyone who scans it can report a problem without signing in.</p><% } %>
+      </div>
+    </div>
+    <%- include('../partials/qr-note') %>
+    <% if (can('equipment.retire')) { %>
+    <div class="section">
+      <div class="section-head"><h2><%= item.status === 'retired' ? 'Return to service' : 'Write off' %></h2></div>
+      <% if (item.status === 'retired') { %>
+      <form method="post" action="/equipment/<%= item.id %>/restore" class="section-note">
+        <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
+        <button type="submit" class="btn">Return to service</button>
+      </form>
+      <% } else { %>
+      <p class="section-note small">For equipment that is scrapped, lost or sold. The record and its history are kept; open reports are closed.</p>
+      <form method="post" action="/equipment/<%= item.id %>/retire" class="inline-form" data-confirm="Write off <%= item.asset_tag %>? Open reports on it will be closed.">
+        <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
+        <label class="sr-only" for="reason">Reason</label>
+        <input id="reason" name="reason" type="text" maxlength="300" minlength="5" placeholder="Reason, e.g. beyond repair" required>
+        <button type="submit" class="btn btn-danger">Write off</button>
+      </form>
+      <% } %>
+    </div>
+    <% } %>
+  </section>
+  <% } %>
+</div>
+
+<% if (full) { %>
+<section class="section">
+  <div class="section-head"><h2>Problem reports</h2></div>
+  <% if (reports.length) { %>
+  <table class="register stack">
+    <thead><tr><th>Report</th><th>Problem</th><th>Reported by</th><th>Date</th><th>Status</th></tr></thead>
+    <tbody>
+    <% for (const r of reports) { %>
+      <tr>
+        <td class="lead"><a href="/reports/<%= r.id %>" class="mono"><%= fmt.ticket(r.id) %></a></td>
+        <td data-label="Problem"><%= fmt.ISSUE[r.issue_type] %></td>
+        <td data-label="Reported by"><%= r.reporter %><% if (!r.reporter_id) { %> <span class="muted small">(not signed in)</span><% } %></td>
+        <td data-label="Date" class="nowrap"><%= fmt.date(r.created_at) %></td>
+        <td data-label="Status"><span class="stamp stamp-<%= r.status %>"><%= fmt.REPORT_STATUS[r.status] %></span></td>
+      </tr>
+    <% } %>
+    </tbody>
+  </table>
+  <% } else { %><p class="empty">No problem has ever been reported on this item.</p><% } %>
+</section>
+
+<section class="section">
+  <div class="section-head"><h2>History</h2></div>
+  <% if (history.length) { %>
+  <table class="register stack">
+    <thead><tr><th>When</th><th>What happened</th><th>By</th></tr></thead>
+    <tbody>
+    <% for (const h of history) { %>
+      <tr>
+        <td class="lead nowrap"><%= fmt.dateTime(h.created_at) %></td>
+        <td data-label="What"><%= h.summary %></td>
+        <td data-label="By" class="mono"><%= h.actor || '—' %></td>
+      </tr>
+    <% } %>
+    </tbody>
+  </table>
+  <% } else { %><p class="empty">Nothing recorded yet.</p><% } %>
+</section>
+<% } %>
+<%- include('../partials/bottom') %>

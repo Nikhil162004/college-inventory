@@ -1,0 +1,10 @@
+<%- include('partials/top') %>
+<div class="error-page">
+  <p class="error-code">Error <%= code %></p>
+  <h1><%= title %></h1>
+  <p><%= message %></p>
+  <div class="actions">
+    <a class="btn btn-primary" href="/"><%= user ? 'Back to overview' : 'Go to sign in' %></a>
+  </div>
+</div>
+<%- include('partials/bottom') %>

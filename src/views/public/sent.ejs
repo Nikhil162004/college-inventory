@@ -1,0 +1,17 @@
+<%- include('../partials/top') %>
+<div class="public">
+  <header class="signin-brand">
+    <span class="brand-title"><%= appName %></span>
+    <span class="brand-org"><%= collegeName %></span>
+  </header>
+  <h1>Report sent</h1>
+  <div class="notice notice-ok" role="status">Thank you. The lab staff have been told.</div>
+  <dl class="receipt">
+    <div><dt>Report number</dt><dd class="receipt-number"><%= fmt.ticket(report.id) %></dd></div>
+    <div><dt>Equipment</dt><dd><span class="mono"><%= report.asset_tag %></span> · <%= report.name %></dd></div>
+    <div><dt>Location</dt><dd><span class="mono"><%= report.location_code %></span> · <%= report.location_name %></dd></div>
+    <div><dt>Sent</dt><dd><%= fmt.dateTime(report.created_at) %></dd></div>
+  </dl>
+  <p class="hint">Note the report number if you want to ask the lab office about it later. You can close this page.</p>
+</div>
+<%- include('../partials/bottom') %>

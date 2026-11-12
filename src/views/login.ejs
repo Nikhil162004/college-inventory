@@ -1,0 +1,61 @@
+<%- include('partials/top') %>
+<div class="signin">
+  <div class="signin-box">
+    <div class="signin-brand">
+      <span class="brand-title"><%= appName %></span>
+      <span class="brand-org"><%= collegeName %></span>
+    </div>
+    <h1>Sign in</h1>
+    <% if (error) { %><div class="notice notice-error" role="alert"><%= error %></div><% } %>
+    <% if (notice) { %><div class="notice notice-warn" role="alert"><%= notice %></div><% } %>
+    <% if (cookieHelp) { %>
+    <div class="notice notice-error" role="alert">
+      <p>Your browser did not send back this site's cookie, so you cannot be signed in yet. Allow cookies for this site and try again.</p>
+      <% if (embedPreview) { %>
+      <p>You are looking at a preview shown inside another page, where some browsers block cookies. <a href="/login" target="_blank" rel="noopener">Open the site in its own tab</a> and sign in there.</p>
+      <% } %>
+    </div>
+    <% } %>
+    <% if (previewDetails) { %><p class="hint signin-details"><%= previewDetails %></p><% } %>
+    <% if (next && !notice && !cookieHelp) { %><div class="notice notice-info">Sign in to continue to the equipment you scanned.</div><% } %>
+    <form method="post" action="/login" novalidate data-fresh-for="<%= freshFor %>" data-fresh-url="<%= freshUrl %>" data-instance="<%= instanceId %>">
+      <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
+      <input type="hidden" name="next" value="<%= next %>">
+      <% if (again) { %><input type="hidden" name="_again" value="1"><% } %>
+      <div class="field">
+        <label for="college_id">College ID</label>
+        <input id="college_id" name="college_id" type="text" value="<%= collegeId %>" maxlength="40" autocomplete="username" autocapitalize="characters" spellcheck="false" required<%= collegeId ? '' : ' autofocus' %>>
+        <p class="hint">Your enrolment number or employee number.</p>
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" maxlength="200" autocomplete="current-password" required<%= collegeId ? ' autofocus' : '' %>>
+      </div>
+      <button type="submit" class="btn btn-primary btn-wide">Sign in</button>
+    </form>
+    <% if (guestReports) { %>
+    <div class="signin-report">
+      <h2>Reporting a broken item?</h2>
+      <p>You do not need an account. Scan the QR label on the item, or type the number printed on it.</p>
+      <form method="get" action="/find" class="find-row">
+        <label class="sr-only" for="tag">Number on the label</label>
+        <input id="tag" name="tag" type="text" placeholder="e.g. PC-00042" maxlength="20" autocomplete="off" autocapitalize="characters" spellcheck="false" required>
+        <button type="submit" class="btn">Report</button>
+      </form>
+    </div>
+    <% } %>
+    <p class="signin-help">First time here, or forgot your password? Ask the lab office for a temporary password. You will choose your own password when you first sign in.</p>
+    <% if (isDemo) { %>
+    <div class="signin-demo">
+      <strong>Demonstration accounts</strong>
+      <table>
+        <tr><td>Administrator</td><td class="mono">ADMIN01</td><td class="mono">Register#Admin26</td></tr>
+        <tr><td>Lab staff</td><td class="mono">STF001</td><td class="mono">Register#Staff26</td></tr>
+        <tr><td>Faculty</td><td class="mono">FAC001</td><td class="mono">Register#Faculty26</td></tr>
+        <tr><td>Student</td><td class="mono">23CS001</td><td class="mono">Register#Student26</td></tr>
+      </table>
+    </div>
+    <% } %>
+  </div>
+</div>
+<%- include('partials/bottom') %>

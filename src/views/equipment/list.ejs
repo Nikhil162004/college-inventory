@@ -1,0 +1,66 @@
+<%- include('../partials/top') %>
+<% const params = { q: filter.q, location: filter.location, category: filter.category, status: filter.status }; %>
+<div class="page-head">
+  <h1>Equipment</h1>
+  <% if (can('equipment.manage')) { %>
+  <div class="actions">
+    <a class="btn" href="/equipment/labels<%= fmt.qs(params) %>">QR labels</a>
+    <a class="btn" href="/equipment/export.csv<%= fmt.qs(params) %>">Export CSV</a>
+    <a class="btn btn-primary" href="/equipment/new<%= fmt.qs({ location: filter.location }) %>">Add equipment</a>
+  </div>
+  <% } %>
+</div>
+
+<form method="get" action="/equipment" class="filters" role="search">
+  <div>
+    <label for="q">Search</label>
+    <input id="q" name="q" type="search" value="<%= filter.q %>" maxlength="80" placeholder="Tag, name, brand, model or serial no.">
+  </div>
+  <div>
+    <label for="location">Lab or room</label>
+    <select id="location" name="location">
+      <option value="">All</option>
+      <% for (const l of locations) { %><option value="<%= l.id %>"<%= l.id === filter.location ? ' selected' : '' %>><%= l.code %> · <%= l.name %></option><% } %>
+    </select>
+  </div>
+  <div>
+    <label for="category">Category</label>
+    <select id="category" name="category">
+      <option value="">All</option>
+      <% for (const c of categories) { %><option value="<%= c.id %>"<%= c.id === filter.category ? ' selected' : '' %>><%= c.name %></option><% } %>
+    </select>
+  </div>
+  <div>
+    <label for="status">Status</label>
+    <select id="status" name="status">
+      <option value="">All in service</option>
+      <% for (const s of Object.keys(fmt.STATUS)) { %><option value="<%= s %>"<%= s === filter.status ? ' selected' : '' %>><%= fmt.STATUS[s] %></option><% } %>
+    </select>
+  </div>
+  <div class="filter-actions">
+    <button type="submit" class="btn btn-primary">Apply</button>
+    <a href="/equipment" class="small">Clear</a>
+  </div>
+</form>
+
+<% if (items.length) { %>
+<p class="result-count"><%= fmt.number(pg.total) %> item<%= pg.total === 1 ? '' : 's' %></p>
+<table class="register stack">
+  <thead><tr><th>Asset tag</th><th>Item</th><th>Category</th><th>Where</th><th>Status</th></tr></thead>
+  <tbody>
+  <% for (const e of items) { %>
+    <tr>
+      <td class="lead"><a href="/equipment/<%= e.id %>" class="mono nowrap"><%= e.asset_tag %></a></td>
+      <td data-label="Item"><%= e.name %><% if (e.brand || e.model) { %><span class="sub"><%= [e.brand, e.model].filter(Boolean).join(' ') %></span><% } %></td>
+      <td data-label="Category"><%= e.category %></td>
+      <td data-label="Where"><span class="mono"><%= e.location_code %></span></td>
+      <td data-label="Status"><span class="stamp stamp-<%= e.status %>"><%= fmt.STATUS[e.status] %></span></td>
+    </tr>
+  <% } %>
+  </tbody>
+</table>
+<%- include('../partials/pager', { pg, base: '/equipment', params }) %>
+<% } else { %>
+<p class="empty">No equipment matches these filters. <a href="/equipment">Show everything</a>.</p>
+<% } %>
+<%- include('../partials/bottom') %>

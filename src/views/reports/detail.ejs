@@ -1,0 +1,63 @@
+<%- include('../partials/top') %>
+<div class="page-head">
+  <div>
+    <p class="crumb"><a href="/reports"><%= can('reports.viewAll') ? 'Problem reports' : 'My reports' %></a></p>
+    <h1>Report <span class="mono"><%= fmt.ticket(report.id) %></span></h1>
+    <p class="record-top lede"><span class="stamp stamp-<%= report.status %>"><%= fmt.REPORT_STATUS[report.status] %></span> <span><%= fmt.ISSUE[report.issue_type] %></span></p>
+  </div>
+</div>
+
+<div class="split split-wide">
+  <div>
+    <section class="section">
+      <div class="section-head"><h2>What was reported</h2></div>
+      <p class="quote"><%= report.description %></p>
+      <dl class="sheet">
+        <div><dt>Equipment</dt><dd><a href="/equipment/<%= report.equipment_id %>" class="mono"><%= report.asset_tag %></a> · <%= report.equipment_name %></dd></div>
+        <div><dt>Location</dt><dd><span class="mono"><%= report.location_code %></span> · <%= report.location_name %></dd></div>
+        <div><dt>Reported</dt><dd><%= fmt.dateTime(report.created_at) %></dd></div>
+        <% if (can('reports.viewAll')) { %>
+        <% if (report.reporter_id) { %>
+        <div><dt>Reported by</dt><dd><%= report.reporter_name %> <span class="muted">(<span class="mono"><%= report.reporter_college_id %></span>, <%= fmt.ROLE[report.reporter_role] %><%= report.reporter_department ? ', ' + report.reporter_department : '' %>)</span></dd></div>
+        <% } else { %>
+        <div><dt>Reported by</dt><dd><%= report.reporter_name %> <span class="muted">(not signed in<% if (report.guest_ref) { %>; gave the number <span class="mono"><%= report.guest_ref %></span><% } %>)</span>
+          <p class="small muted">Sent from the QR label without an account. The name and number are as typed and have not been checked.</p></dd></div>
+        <% } %>
+        <% } %>
+        <div><dt>Assigned to</dt><dd><%= report.assignee_name || 'Nobody yet' %></dd></div>
+        <% if (report.closed_at) { %><div><dt>Closed</dt><dd><%= fmt.dateTime(report.closed_at) %></dd></div><% } %>
+      </dl>
+    </section>
+
+    <section class="section">
+      <div class="section-head"><h2>Progress</h2></div>
+      <ol class="timeline">
+        <% for (const u of updates) { %>
+        <li>
+          <p><% if (!u.from_status) { %>Report filed<% } else if (u.from_status === u.to_status) { %>Note added<% } else { %>Marked <strong><%= fmt.REPORT_STATUS[u.to_status].toLowerCase() %></strong><% } %><% if (u.from_status && u.user_name) { %> by <%= u.user_name %><% } %></p>
+          <p class="timeline-when"><%= fmt.dateTime(u.created_at) %></p>
+          <% if (u.note) { %><p class="timeline-note"><%= u.note %></p><% } %>
+        </li>
+        <% } %>
+      </ol>
+    </section>
+  </div>
+
+  <% if (can('reports.manage')) { %>
+  <section class="section">
+    <div class="section-head"><h2>Update this report</h2></div>
+    <% if (Object.keys(errors).length) { %><div class="notice notice-error section-note" role="alert">The update was not saved. See below.</div><% } %>
+    <% const current = { status: values.status || report.status, assigned_to: values.assigned_to !== undefined ? values.assigned_to : report.assigned_to, note: values.note || '' }; %>
+    <form method="post" action="/reports/<%= report.id %>/update" class="section-note" novalidate>
+      <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
+      <div class="form-grid">
+        <%- include('../partials/select', { name: 'status', label: 'Status', values: current, errors, wide: true, options: Object.keys(fmt.REPORT_STATUS).map((s) => ({ value: s, label: fmt.REPORT_STATUS[s] })), hint: 'In progress marks the equipment as under repair. Resolved returns it to working.' }) %>
+        <%- include('../partials/select', { name: 'assigned_to', label: 'Assigned to', values: current, errors, wide: true, optional: true, placeholder: 'Nobody', hint: 'If left empty, a report you take up is assigned to you.', options: staff.map((s) => ({ value: s.id, label: `${s.name} (${s.college_id})` })) }) %>
+        <%- include('../partials/input', { name: 'note', label: 'Note', type: 'textarea', rows: 4, values: current, errors, maxlength: 1000, optional: true, wide: true, hint: report.reporter_id ? 'Required when resolving or rejecting. The person who reported can read it.' : 'Required when resolving or rejecting.' }) %>
+      </div>
+      <div class="form-actions"><button type="submit" class="btn btn-primary">Save update</button></div>
+    </form>
+  </section>
+  <% } %>
+</div>
+<%- include('../partials/bottom') %>

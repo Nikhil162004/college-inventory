@@ -1,0 +1,25 @@
+<%- include('../partials/top') %>
+<div class="page-head">
+  <div>
+    <p class="crumb"><a href="/locations">Labs &amp; rooms</a></p>
+    <h1><%= loc ? 'Edit ' + loc.code : 'Add lab or room' %></h1>
+  </div>
+</div>
+<% if (Object.keys(errors).length) { %><div class="notice notice-error" role="alert">Some details need correcting. They are marked below.</div><% } %>
+<form method="post" action="<%= loc ? '/locations/' + loc.id : '/locations' %>" class="form" novalidate>
+  <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
+  <div class="form-grid">
+    <%- include('../partials/input', { name: 'code', label: 'Code', values, errors, maxlength: 15, hint: 'Short and unique, printed on labels. For example LAB-07 or CR-204.' }) %>
+    <%- include('../partials/select', { name: 'kind', label: 'Type', values, errors, options: Object.keys(fmt.KIND).map((k) => ({ value: k, label: fmt.KIND[k] })) }) %>
+    <%- include('../partials/input', { name: 'name', label: 'Name', values, errors, maxlength: 100, wide: true }) %>
+    <%- include('../partials/input', { name: 'building', label: 'Building or block', values, errors, maxlength: 80, optional: true }) %>
+    <%- include('../partials/input', { name: 'floor', label: 'Floor', values, errors, maxlength: 40, optional: true }) %>
+    <%- include('../partials/select', { name: 'incharge_id', label: 'In-charge', values, errors, optional: true, wide: true, placeholder: 'Not assigned', options: people.map((p) => ({ value: p.id, label: `${p.name} (${p.college_id})` })) }) %>
+    <%- include('../partials/input', { name: 'notes', label: 'Notes', type: 'textarea', rows: 3, values, errors, maxlength: 500, optional: true, wide: true }) %>
+  </div>
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary"><%= loc ? 'Save changes' : 'Add' %></button>
+    <a class="btn" href="<%= loc ? '/locations/' + loc.id : '/locations' %>">Cancel</a>
+  </div>
+</form>
+<%- include('../partials/bottom') %>

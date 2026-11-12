@@ -1,0 +1,11 @@
+<% if (qrNote) { %>
+<div class="notice notice-warn no-print" role="note">
+  <% if (qrNote.kind === 'preview') { %>
+  <p><strong>Phones cannot scan these codes yet.</strong> This is a private preview: its address opens only inside the preview pane, so other devices cannot open it. Scanning works once the site runs on your own computer or server.</p>
+  <% } else if (qrNote.kind === 'local') { %>
+  <p><strong>This address only works on this computer.</strong> To scan with a phone, connect the phone to the same Wi-Fi and open the site by this computer's network address instead (it is shown when the server starts).</p>
+  <% } else { %>
+  <p>QR codes on this page point to <%= qrNote.base %>. That is fine for a trial on the same network. Before printing labels for real use, set <span class="mono">BASE_URL</span> to the permanent address of the site; otherwise every label has to be printed again.</p>
+  <% } %>
+</div>
+<% } %>

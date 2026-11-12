@@ -1,0 +1,45 @@
+<%- include('partials/top') %>
+<div class="page-head">
+  <div>
+    <h1>Categories</h1>
+    <p class="lede">A category groups similar equipment and sets the letters at the start of its asset tags.</p>
+  </div>
+</div>
+<div class="split split-wide">
+  <section class="section">
+    <div class="section-head"><h2>Existing categories</h2></div>
+    <% if (categories.length) { %>
+    <table class="register">
+      <thead><tr><th>Name</th><th>Tag prefix</th><th class="num">Items</th></tr></thead>
+      <tbody>
+      <% for (const c of categories) { %>
+        <tr>
+          <td>
+            <form method="post" action="/categories/<%= c.id %>" class="inline-form">
+              <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
+              <label class="sr-only" for="cat-<%= c.id %>">Name of category <%= c.prefix %></label>
+              <input id="cat-<%= c.id %>" type="text" name="name" value="<%= c.name %>" maxlength="60" required>
+              <button type="submit" class="btn">Rename</button>
+            </form>
+          </td>
+          <td class="mono"><%= c.prefix %>-</td>
+          <td class="num"><a href="/equipment?category=<%= c.id %>"><%= fmt.number(c.total) %></a></td>
+        </tr>
+      <% } %>
+      </tbody>
+    </table>
+    <% } else { %><p class="empty">No categories yet.</p><% } %>
+  </section>
+  <section class="section">
+    <div class="section-head"><h2>Add a category</h2></div>
+    <form method="post" action="/categories" class="section-note" novalidate>
+      <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
+      <div class="form-grid">
+        <%- include('partials/input', { name: 'name', label: 'Name', values, errors, maxlength: 60, wide: true }) %>
+        <%- include('partials/input', { name: 'prefix', label: 'Tag prefix', values, errors, maxlength: 5, wide: true, hint: '2–5 letters, e.g. PRJ gives tags like PRJ-00001. It cannot be changed later because it is printed on labels.' }) %>
+      </div>
+      <div class="form-actions"><button type="submit" class="btn btn-primary">Add category</button></div>
+    </form>
+  </section>
+</div>
+<%- include('partials/bottom') %>

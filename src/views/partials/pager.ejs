@@ -1,0 +1,15 @@
+<% if (pg.total > 0) {
+  const from = pg.offset + 1;
+  const to = Math.min(pg.offset + pg.pageSize, pg.total);
+  const href = (p) => base + fmt.qs({ ...params, page: p > 1 ? p : '' });
+%>
+<nav class="pager" aria-label="Pages">
+  <p class="pager-info"><%= fmt.number(from) %>–<%= fmt.number(to) %> of <%= fmt.number(pg.total) %></p>
+  <% if (pg.pages > 1) { %>
+  <div class="pager-links">
+    <% if (pg.page > 1) { %><a class="btn" href="<%= href(pg.page - 1) %>" rel="prev">Previous</a><% } else { %><span class="btn" aria-disabled="true">Previous</span><% } %>
+    <% if (pg.page < pg.pages) { %><a class="btn" href="<%= href(pg.page + 1) %>" rel="next">Next</a><% } else { %><span class="btn" aria-disabled="true">Next</span><% } %>
+  </div>
+  <% } %>
+</nav>
+<% } %>

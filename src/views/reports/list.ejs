@@ -1,0 +1,56 @@
+<%- include('../partials/top') %>
+<% const params = { q: filter.q, status: filter.status, location: filter.location }; %>
+<div class="page-head">
+  <h1><%= all ? 'Problem reports' : 'My reports' %></h1>
+</div>
+
+<form method="get" action="/reports" class="filters <%= all ? 'filters-3' : 'filters-2' %>" role="search">
+  <div>
+    <label for="q">Search</label>
+    <input id="q" name="q" type="search" value="<%= filter.q %>" maxlength="80" placeholder="Asset tag, item or words from the report">
+  </div>
+  <div>
+    <label for="status">Status</label>
+    <select id="status" name="status">
+      <option value="active"<%= filter.status === 'active' ? ' selected' : '' %>>Awaiting action</option>
+      <% for (const s of Object.keys(fmt.REPORT_STATUS)) { %><option value="<%= s %>"<%= s === filter.status ? ' selected' : '' %>><%= fmt.REPORT_STATUS[s] %></option><% } %>
+      <option value="all"<%= filter.status === 'all' ? ' selected' : '' %>>All</option>
+    </select>
+  </div>
+  <% if (all) { %>
+  <div>
+    <label for="location">Lab or room</label>
+    <select id="location" name="location">
+      <option value="">All</option>
+      <% for (const l of locations) { %><option value="<%= l.id %>"<%= l.id === filter.location ? ' selected' : '' %>><%= l.code %> · <%= l.name %></option><% } %>
+    </select>
+  </div>
+  <% } %>
+  <div class="filter-actions">
+    <button type="submit" class="btn btn-primary">Apply</button>
+    <a href="/reports" class="small">Clear</a>
+  </div>
+</form>
+
+<% if (reports.length) { %>
+<p class="result-count"><%= fmt.number(pg.total) %> report<%= pg.total === 1 ? '' : 's' %></p>
+<table class="register stack">
+  <thead><tr><th>Report</th><th>Equipment</th><th>Problem</th><% if (all) { %><th>Reported by</th><% } %><th>Date</th><th>Status</th></tr></thead>
+  <tbody>
+  <% for (const r of reports) { %>
+    <tr>
+      <td class="lead"><a href="/reports/<%= r.id %>" class="mono nowrap"><%= fmt.ticket(r.id) %></a></td>
+      <td data-label="Equipment"><span class="mono"><%= r.asset_tag %></span><span class="sub"><%= r.equipment_name %> · <%= r.location_code %></span></td>
+      <td data-label="Problem"><%= fmt.ISSUE[r.issue_type] %></td>
+      <% if (all) { %><td data-label="Reported by"><%= r.reporter_name %><% if (!r.reporter_id) { %> <span class="muted small">(not signed in)</span><% } %></td><% } %>
+      <td data-label="Date" class="nowrap"><%= fmt.dateTime(r.created_at) %></td>
+      <td data-label="Status"><span class="stamp stamp-<%= r.status %>"><%= fmt.REPORT_STATUS[r.status] %></span></td>
+    </tr>
+  <% } %>
+  </tbody>
+</table>
+<%- include('../partials/pager', { pg, base: '/reports', params }) %>
+<% } else { %>
+<p class="empty"><%= all ? 'No reports match these filters.' : 'You have no reports here. To report something, scan the QR label on the equipment.' %></p>
+<% } %>
+<%- include('../partials/bottom') %>

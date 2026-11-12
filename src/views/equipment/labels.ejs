@@ -1,0 +1,32 @@
+<%- include('../partials/top', { bodyClass: 'print-only-labels' }) %>
+<% const params = { q: filter.q, location: filter.location, category: filter.category, status: filter.status }; %>
+<div class="page-head no-print">
+  <div>
+    <p class="crumb"><a href="/equipment<%= fmt.qs(params) %>">Equipment</a></p>
+    <h1>QR labels</h1>
+    <p class="lede">Print on A4 sticker paper, three labels across. Use the filters on the equipment list to choose which items appear here.</p>
+  </div>
+  <div class="actions">
+    <button type="button" class="btn btn-primary" data-print hidden>Print this sheet</button>
+  </div>
+</div>
+<%- include('../partials/qr-note') %>
+<% if (items.length) { %>
+<div class="labels">
+  <% for (const e of items) { %>
+  <div class="label">
+    <%- e.qr %>
+    <div>
+      <p class="label-org"><%= collegeName %></p>
+      <p class="label-tag"><%= e.asset_tag %></p>
+      <p class="label-name"><%= e.name %> · <%= e.location_code %></p>
+      <p class="label-foot">Broken? Scan to report.</p>
+    </div>
+  </div>
+  <% } %>
+</div>
+<%- include('../partials/pager', { pg, base: '/equipment/labels', params }) %>
+<% } else { %>
+<p class="empty">No equipment matches, so there is nothing to print.</p>
+<% } %>
+<%- include('../partials/bottom') %>

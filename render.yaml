@@ -1,0 +1,31 @@
+# A public DEMONSTRATION of the Inventory Register on Render (render.com), free plan.
+# It gives the site a public https address, so phones can scan its QR codes.
+#
+# It serves the made-up college whose sign-ins are printed on the sign-in page.
+# The free plan forgets everything that was added whenever the site restarts or
+# sleeps. Never keep real records here: see "Using it for real" in README.md.
+#
+# How to use it: put this folder in a GitHub repository, then on render.com choose
+# New > Blueprint and pick that repository.
+services:
+  - type: web
+    name: inventory-register-demo
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: npm ci && NODE_ENV=development npm run seed:demo
+    startCommand: npm start
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_VERSION
+        value: 24.22.3
+      - key: NODE_ENV
+        value: production
+      - key: PUBLIC_DEMO
+        value: "1"
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: TRUST_PROXY
+        value: "1"
+      - key: COLLEGE_NAME
+        value: College of Engineering

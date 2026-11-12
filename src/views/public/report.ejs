@@ -1,0 +1,55 @@
+<%- include('../partials/top') %>
+<div class="public">
+  <header class="signin-brand">
+    <span class="brand-title"><%= appName %></span>
+    <span class="brand-org"><%= collegeName %></span>
+  </header>
+  <h1>Report a problem</h1>
+  <div class="public-item">
+    <p class="asset-tag"><%= item.asset_tag %></p>
+    <p class="public-item-name"><%= item.name %></p>
+    <p class="small muted"><span class="mono"><%= item.location_code %></span> · <%= item.location_name %></p>
+  </div>
+
+  <% if (closed) { %>
+  <div class="notice notice-warn" role="status"><%= closed %></div>
+  <% } else { %>
+  <% if (problem) { %><div class="notice notice-error" role="alert"><%= problem %></div><% } %>
+  <% if (notice) { %><div class="notice notice-warn" role="alert"><%= notice %></div><% } %>
+  <% if (Object.keys(errors).length) { %><div class="notice notice-error" role="alert">The report has not been sent yet. Please check the marked fields.</div><% } %>
+  <% if (activeReports.length) { %>
+  <div class="notice notice-warn">
+    <h2>Already reported</h2>
+    <ul>
+      <% for (const r of activeReports) { %>
+      <li><%= fmt.ISSUE[r.issue_type] %>, reported <%= fmt.date(r.created_at) %> (<%= fmt.REPORT_STATUS[r.status].toLowerCase() %>)</li>
+      <% } %>
+    </ul>
+    <p class="small">The lab staff already know about this. Report again only if you have found a different problem.</p>
+  </div>
+  <% } %>
+  <form method="post" action="/e/<%= item.asset_tag %>/report" novalidate>
+    <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
+    <fieldset<% if (errors.issue_type) { %> aria-describedby="e-issue_type"<% } %>>
+      <legend class="legend">What is wrong?</legend>
+      <div class="choices">
+        <% for (const key of Object.keys(fmt.ISSUE)) { %>
+        <label class="choice"><input type="radio" name="issue_type" value="<%= key %>"<%= values.issue_type === key ? ' checked' : '' %> required><span><%= fmt.ISSUE[key] %></span></label>
+        <% } %>
+      </div>
+      <% if (errors.issue_type) { %><p class="field-error" id="e-issue_type"><%= errors.issue_type %></p><% } %>
+    </fieldset>
+    <%- include('../partials/input', { name: 'description', label: 'Describe the problem', type: 'textarea', rows: 4, values, errors, maxlength: 1000, hint: 'A sentence or two is enough. For example: “Does not power on, no light on the front panel.”' }) %>
+    <%- include('../partials/input', { name: 'reporter_name', label: 'Your name', values, errors, maxlength: 80, autocomplete: 'name' }) %>
+    <%- include('../partials/input', { name: 'reporter_ref', label: 'Roll number or employee number', values, errors, maxlength: 40, optional: true, hint: 'So the lab staff can reach you if they have a question.' }) %>
+    <div class="hp" aria-hidden="true">
+      <label for="f-leave_blank">Leave this field empty</label>
+      <input id="f-leave_blank" name="leave_blank" type="text" tabindex="-1" autocomplete="off">
+    </div>
+    <button type="submit" class="btn btn-primary btn-wide">Send report</button>
+    <p class="hint">The report goes to the lab staff together with the name you give.</p>
+  </form>
+  <% } %>
+  <p class="public-foot">Lab staff: <a href="/login?next=<%= encodeURIComponent('/e/' + item.asset_tag) %>">sign in</a> to see this item in the register.</p>
+</div>
+<%- include('../partials/bottom') %>

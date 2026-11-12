@@ -1,0 +1,61 @@
+<%- include('../partials/top') %>
+<div class="page-head">
+  <div>
+    <p class="crumb"><a href="/locations">Labs &amp; rooms</a></p>
+    <h1><%= loc.name %></h1>
+    <p class="record-top lede"><span class="asset-tag"><%= loc.code %></span> <span><%= fmt.KIND[loc.kind] %><%= loc.building ? ' · ' + loc.building : '' %><%= loc.floor ? ', ' + loc.floor : '' %></span></p>
+  </div>
+  <div class="actions">
+    <a class="btn" href="/equipment?location=<%= loc.id %>">All equipment here</a>
+    <% if (can('equipment.manage')) { %>
+    <a class="btn" href="/equipment/labels?location=<%= loc.id %>">QR labels</a>
+    <a class="btn btn-primary" href="/equipment/new?location=<%= loc.id %>">Add equipment</a>
+    <% } %>
+    <% if (can('locations.manage')) { %><a class="btn" href="/locations/<%= loc.id %>/edit">Edit</a><% } %>
+  </div>
+</div>
+
+<dl class="sheet form">
+  <div><dt>In-charge</dt><dd><%= loc.incharge ? loc.incharge : 'Not assigned' %></dd></div>
+  <div><dt>Items in service</dt><dd><%= fmt.number(total) %></dd></div>
+  <% if (loc.notes) { %><div><dt>Notes</dt><dd class="pre-line"><%= loc.notes %></dd></div><% } %>
+</dl>
+
+<div class="split section">
+  <section>
+    <div class="section-head"><h2>What is in this room</h2></div>
+    <% if (breakdown.length) { %>
+    <table class="register">
+      <thead><tr><th>Category</th><th class="num">Items</th><th class="num">Working</th><th class="num">Faulty</th></tr></thead>
+      <tbody>
+      <% for (const b of breakdown) { %>
+        <tr>
+          <td><a href="/equipment?location=<%= loc.id %>&amp;category=<%= b.id %>"><%= b.name %></a></td>
+          <td class="num"><%= b.total %></td>
+          <td class="num"><%= b.working %></td>
+          <td class="num"><%= b.faulty ? b.faulty : '' %><% if (!b.faulty) { %><span class="muted">0</span><% } %></td>
+        </tr>
+      <% } %>
+      </tbody>
+    </table>
+    <% } else { %><p class="empty">Nothing is registered in this room yet.</p><% } %>
+  </section>
+  <section>
+    <div class="section-head"><h2>Needs attention</h2></div>
+    <% if (faulty.length) { %>
+    <table class="register">
+      <thead><tr><th>Asset tag</th><th>Item</th><th>Status</th></tr></thead>
+      <tbody>
+      <% for (const e of faulty) { %>
+        <tr>
+          <td class="lead"><a href="/equipment/<%= e.id %>" class="mono nowrap"><%= e.asset_tag %></a></td>
+          <td><%= e.name %></td>
+          <td><span class="stamp stamp-<%= e.status %>"><%= fmt.STATUS[e.status] %></span></td>
+        </tr>
+      <% } %>
+      </tbody>
+    </table>
+    <% } else { %><p class="empty">Everything here is working.</p><% } %>
+  </section>
+</div>
+<%- include('../partials/bottom') %>

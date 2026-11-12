@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title><%= title %> · <%= appName %></title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/app.css?v=<%= assetVersion %>">
+  <script src="/static/boot.js?v=<%= assetVersion %>"></script>
+  <script src="/static/app.js?v=<%= assetVersion %>" defer></script>
+</head>
+<body class="<%= user ? '' : 'signed-out' %><%= locals.bodyClass ? ' ' + bodyClass : '' %>">
+<a class="skip-link" href="#main">Skip to content</a>
+<% if (user) {
+  const at = (prefix) => (prefix === '/' ? currentPath === '/' : currentPath === prefix || currentPath.startsWith(prefix + '/'));
+  const link = (href, label) => `<li><a href="${href}"${at(href) ? ' aria-current="page"' : ''}>${label}</a></li>`;
+%>
+<div class="sidebar">
+  <header class="masthead">
+    <a class="brand" href="/">
+      <span class="brand-title"><%= appName %></span>
+      <span class="brand-org"><%= collegeName %></span>
+    </a>
+    <button type="button" class="menu-toggle" aria-controls="site-nav" aria-expanded="false">Menu</button>
+  </header>
+  <nav id="site-nav" class="site-nav" aria-label="Main">
+    <% if (!user.must_change_password) { %>
+    <ul>
+      <%- link('/', 'Overview') %>
+      <% if (can('equipment.browse')) { %>
+      <%- link('/equipment', 'Equipment') %>
+      <%- link('/locations', 'Labs &amp; rooms') %>
+      <% } %>
+      <%- link('/reports', can('reports.viewAll') ? 'Problem reports' : 'My reports') %>
+    </ul>
+    <% if (can('users.manage')) { %>
+    <p class="nav-label">Administration</p>
+    <ul>
+      <%- link('/users', 'People') %>
+      <%- link('/categories', 'Categories') %>
+      <%- link('/audit', 'Activity log') %>
+    </ul>
+    <% } %>
+    <% } %>
+    <div class="nav-user">
+      <p class="nav-user-name"><%= user.name %></p>
+      <p class="nav-user-meta"><span class="mono"><%= user.college_id %></span> · <%= fmt.ROLE[user.role] %></p>
+      <% if (!user.must_change_password) { %><p class="small"><a href="/account">My account</a></p><% } %>
+      <form method="post" action="/logout">
+        <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
+        <button type="submit" class="link-button small">Sign out</button>
+      </form>
+    </div>
+  </nav>
+</div>
+<% } %>
+<main id="main" class="page">
+<% if (user && isDemo) { %><p class="demo-note no-print">Demonstration data. Names, equipment and reports on this site are made up.</p><% } %>
+<% const flash = takeFlash(); if (flash) { %>
+<div class="notice notice-<%= flash.type %>" role="status"><%= flash.text %></div>
+<% } %>
